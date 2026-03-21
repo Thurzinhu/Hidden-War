@@ -6,6 +6,11 @@ export class Preloader extends Phaser.Scene {
     }
 
     preload() {
+        // load 'forest' assets
+        this.load.setPath("assets/map");
+        this.load.image("spritesheet");
+        this.load.tilemapTiledJSON("forest", "map.json");
+
         // Load all the assets
         this.load.setPath("assets");
         this.load.image("logo", "logo.png");
