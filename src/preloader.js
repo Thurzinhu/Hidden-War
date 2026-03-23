@@ -10,6 +10,16 @@ export class Preloader extends Phaser.Scene {
         this.load.setPath("assets/map");
         this.load.image("spritesheet");
         this.load.tilemapTiledJSON("forest", "map.json");
+        
+        this.load.setPath("assets/tiny_swords_free_pack/Units/Black Units/Warrior");
+        this.load.spritesheet("warrior-idle", "Warrior_Idle.png", {
+            frameWidth: 192,
+            frameHeight: 192,
+        });
+        this.load.spritesheet("warrior-run", "Warrior_Run.png", {
+            frameWidth: 192,
+            frameHeight: 192,
+        });
 
         // Load all the assets
         this.load.setPath("assets");

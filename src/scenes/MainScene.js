@@ -1,9 +1,9 @@
 import { Scene } from "phaser";
-import { Player } from "../gameobjects/Player";
-import { BlueEnemy } from "../gameobjects/BlueEnemy";
 
 export class MainScene extends Scene {
     controls = null;
+    player = null;
+    cursors = null;
 
     constructor() {
         super("MainScene");
@@ -14,47 +14,87 @@ export class MainScene extends Scene {
         this.scene.launch("MenuScene");
     }
 
+    createPlayerAnimation() {
+        const anims = this.anims;
+        anims.create({
+            key: 'idle',
+            frames: anims.generateFrameNumbers("warrior-idle"),
+            frameRate: 16,
+            repeat: -1,
+        })
+        anims.create({
+            key: 'run',
+            frames: anims.generateFrameNumbers("warrior-run"),
+            frameRate: 16,
+            repeat: -1,
+        })
+    }
+
     create() {
         
         const forest = this.make.tilemap({ key: 'forest' });
-        const tileset = forest.addTilesetImage('spritefusion', 'spritesheet')
+        const tileset = forest.addTilesetImage('spritefusion', 'spritesheet');
 
-        forest.createLayer('Background', tileset);
-        forest.createLayer('Sand', tileset);
-        forest.createLayer('Cliff', tileset);
-        forest.createLayer('Rocks', tileset);
-        forest.createLayer('Grass', tileset);
-        forest.createLayer('Bridge - vertical', tileset);
-        forest.createLayer('Bridge - horizontal', tileset);
-        forest.createLayer('Stairs', tileset);
-        forest.createLayer('Shadows', tileset);
-        forest.createLayer('Small rocks', tileset);
-        forest.createLayer('Trees back', tileset);
-        forest.createLayer('Buildings', tileset);
-        forest.createLayer('Trees front', tileset);
-        forest.createLayer('Miscs', tileset);
+        for (const layer of forest.layers) {
+            const layerObj = forest.createLayer(layer.name, tileset);
+            const hasCollider = layer.properties?.some(
+                p => p.name === 'collider' && p.value === true
+            );
 
+            if (hasCollider) {
+                layerObj.setCollisionByExclusion([-1]);
+            }
+            const debugGraphics = this.add.graphics().setAlpha(0.75);
+            layerObj.renderDebug(debugGraphics, {
+                tileColor: null,
+                collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255),
+                faceColor: new Phaser.Display.Color(40, 39, 37, 255)
+            });
+        }  
+        
 
-        // Phaser supports multiple cameras, but you can access the default camera like this:
+        //   const spawnPoint = map.findObject("Objects", obj => obj.name === "Spawn Point");
+        this.player = this.physics.add.sprite(50, 50, "warrior-idle").setSize(40, 40);
+
         const camera = this.cameras.main;
-
-        // Set up the arrows to control the camera
-        const cursors = this.input.keyboard.createCursorKeys();
-        this.controls = new Phaser.Cameras.Controls.FixedKeyControl({
-            camera: camera,
-            left: cursors.left,
-            right: cursors.right,
-            up: cursors.up,
-            down: cursors.down,
-            speed: 0.5
-        });
-
-        // Constrain the camera so that it isn't allowed to move outside the width/height of tilemap
+        camera.startFollow(this.player);
         camera.setBounds(0, 0, forest.widthInPixels, forest.heightInPixels);
+        this.createPlayerAnimation();
+
+        this.cursors = this.input.keyboard.createCursorKeys();
+
+        this.physics.world.createDebugGraphic();
 
     }
 
     update(time, delta) {
-        this.controls.update(delta);
+        const speed = 180;
+        // const prevVelocity = this.player.velocity.clone();
+        this.player.body.setVelocity(0);
+
+        if (this.cursors.left.isDown) {
+            this.player.body.setVelocityX(-speed);
+        } else if (this.cursors.right.isDown) {
+            this.player.body.setVelocityX(speed);
+        }
+
+        if (this.cursors.up.isDown) {
+            this.player.body.setVelocityY(-speed);
+        } else if (this.cursors.down.isDown) {
+            this.player.body.setVelocityY(speed);
+        }
+
+        this.player.body.velocity.normalize().scale(speed);
+        
+        if (this.cursors.left.isDown || this.cursors.right.isDown || this.cursors.up.isDown || this.cursors.down.isDown) {
+            if (this.cursors.right.isDown) {
+                this.player.flipX = false;
+            } else if (this.cursors.left.isDown) {
+                this.player.flipX = true;
+            }
+            this.player.play("run", true);
+        } else {
+            this.player.play("idle", true);
+        }
     }
 }
