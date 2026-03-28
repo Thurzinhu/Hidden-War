@@ -17,6 +17,7 @@ export class Fase1Scene extends Scene {
 
         this.player = new Player({ scene: this });
         this.player.setDepth(10);
+        this.player.setPosition(256, 320);
         this.player.body.setSize(30, 20); 
         this.player.body.setOffset(80, 90); 
 
