@@ -19,8 +19,8 @@ export class Preloader extends Phaser.Scene {
     loadPhasesMap() {
         this.load.setPath("assets/map");
         
-        this.load.image("tilesFase1", "spritesheet_floresta.png");
-        this.load.tilemapTiledJSON("mapaFloresta", "mapa1_floresta.json");
+        this.load.image("tilesFase1", "spritesheet_phase1.png");
+        this.load.tilemapTiledJSON("mapaFloresta", "phase1.json");
         
         this.load.image("tilesFase2", "spritesheet_ossos.png");
         this.load.tilemapTiledJSON("mapaOssos", "mapa2_ossos.json"); 
