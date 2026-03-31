@@ -6,18 +6,27 @@ export class Preloader extends Phaser.Scene {
     }
 
     preload() {
-        // --- INÍCIO DA CARGA DOS MAPAS ---
+        this.loadPhasesMap();
+        this.loadPlayerAssets();
+        this.loadLogo();
+
+        // Event to update the loading bar
+        this.load.on("progress", (progress) => {
+            console.log("Loading: " + Math.round(progress * 100) + "%");
+        });
+    }
+
+    loadPhasesMap() {
         this.load.setPath("assets/map");
         
-        // Fase 1: Mapa da Floresta
         this.load.image("tilesFase1", "spritesheet_floresta.png");
         this.load.tilemapTiledJSON("mapaFloresta", "mapa1_floresta.json");
         
-        // Fase 2: Mapa do Vale dos Ossos 
         this.load.image("tilesFase2", "spritesheet_ossos.png");
         this.load.tilemapTiledJSON("mapaOssos", "mapa2_ossos.json"); 
-        // --- FIM DA CARGA DOS MAPAS ---
-        
+    }
+
+    loadPlayerAssets() {
         this.load.setPath("assets/tiny_swords_free_pack/Units/Black Units/Warrior");
         this.load.spritesheet("warrior-idle", "Warrior_Idle.png", {
             frameWidth: 192,
@@ -60,24 +69,14 @@ export class Preloader extends Phaser.Scene {
         this.load.bitmapFont("pixelfont", "fonts/pixelfont.png", "fonts/pixelfont.xml");
         this.load.image("knighthawks", "fonts/knight3.png");
 
-        // Event to update the loading bar
-        this.load.on("progress", (progress) => {
-            console.log("Loading: " + Math.round(progress * 100) + "%");
-        });
+    }
+
+    loadLogo() {
+        this.load.setPath("assets/tiny_swords_free_pack/UI Elements/UI Elements/Human Avatars")
+        this.load.image("logo", "Avatars_01.png");
     }
 
     create() {
-        // Create bitmap font and load it in cache
-        const config = {
-            image: 'knighthawks',
-            width: 31,
-            height: 25,
-            chars: Phaser.GameObjects.RetroFont.TEXT_SET6,
-            charsPerRow: 10,
-            spacing: { x: 1, y: 1 }
-        };
-        this.cache.bitmapFont.add('knighthawks', Phaser.GameObjects.RetroFont.Parse(this, config));
-
         // When all the assets are loaded go to the next scene
         this.scene.start("SplashScene");
     }
