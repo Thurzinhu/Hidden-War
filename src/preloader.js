@@ -6,18 +6,27 @@ export class Preloader extends Phaser.Scene {
     }
 
     preload() {
-        // --- INÍCIO DA CARGA DOS MAPAS ---
+        this.loadPhasesMap();
+        this.loadPlayerAssets();
+        this.loadLogo();
+
+        // Event to update the loading bar
+        this.load.on("progress", (progress) => {
+            console.log("Loading: " + Math.round(progress * 100) + "%");
+        });
+    }
+
+    loadPhasesMap() {
         this.load.setPath("assets/map");
         
-        // Fase 1: Mapa da Floresta
         this.load.image("tilesFase1", "spritesheet_floresta.png");
         this.load.tilemapTiledJSON("mapaFloresta", "mapa1_floresta.json");
         
-        // Fase 2: Mapa do Vale dos Ossos 
         this.load.image("tilesFase2", "spritesheet_ossos.png");
         this.load.tilemapTiledJSON("mapaOssos", "mapa2_ossos.json"); 
-        // --- FIM DA CARGA DOS MAPAS ---
-        
+    }
+
+    loadPlayerAssets() {
         this.load.setPath("assets/tiny_swords_free_pack/Units/Black Units/Warrior");
         this.load.spritesheet("warrior-idle", "Warrior_Idle.png", {
             frameWidth: 192,
@@ -27,48 +36,55 @@ export class Preloader extends Phaser.Scene {
             frameWidth: 192,
             frameHeight: 192,
         });
-
-        // Load all the assets
-        this.load.setPath("assets");
-        this.load.image("logo", "logo.png");
-        this.load.image("floor");
-        this.load.image("background", "background.png");
-
-        this.load.image("player", "player/player.png");
-        this.load.atlas("propulsion-fire", "player/propulsion/propulsion-fire.png", "player/propulsion/propulsion-fire_atlas.json");
-        this.load.animation("propulsion-fire-anim", "player/propulsion/propulsion-fire_anim.json");
-
-        // Bullets
-        this.load.image("bullet", "player/bullet.png");
-        this.load.image("flares")
-
-        // Enemies
-        this.load.atlas("enemy-blue", "enemies/enemy-blue/enemy-blue.png", "enemies/enemy-blue/enemy-blue_atlas.json");
-        this.load.animation("enemy-blue-anim", "enemies/enemy-blue/enemy-blue_anim.json");
-        this.load.image("enemy-bullet", "enemies/enemy-bullet.png");
-
-        // Fonts
-        this.load.bitmapFont("pixelfont", "fonts/pixelfont.png", "fonts/pixelfont.xml");
-        this.load.image("knighthawks", "fonts/knight3.png");
-
-        // Event to update the loading bar
-        this.load.on("progress", (progress) => {
-            console.log("Loading: " + Math.round(progress * 100) + "%");
+        
+        this.load.setPath("assets/tiny_swords_free_pack/Units/Black Units/Archer");
+        this.load.spritesheet("archer-idle", "Archer_Idle.png", {
+            frameWidth: 192,
+            frameHeight: 192,
         });
+        this.load.spritesheet("archer-run", "Archer_Run.png", {
+            frameWidth: 192,
+            frameHeight: 192,
+        });
+
+        this.load.setPath("assets/tiny_swords_free_pack/Units/Black Units/Lancer");
+        this.load.spritesheet("lancer-idle", "Lancer_Idle.png", {
+            frameWidth: 320,
+            frameHeight: 320,
+        });
+        this.load.spritesheet("lancer-run", "Lancer_Run.png", {
+            frameWidth: 320,
+            frameHeight: 320,
+        });
+
+        this.load.setPath("assets/tiny_swords_free_pack/Units/Black Units/Monk");
+        this.load.spritesheet("monk-idle", "Idle.png", {
+            frameWidth: 192,
+            frameHeight: 192,
+        });
+        this.load.spritesheet("monk-run", "Run.png", {
+            frameWidth: 192,
+            frameHeight: 192,
+        });
+
+        this.loadPlayerAvatars();
+    }
+
+    loadPlayerAvatars() {
+        this.load.setPath("assets/tiny_swords_free_pack/UI Elements/UI Elements/Human Avatars")
+        this.load.image("warrior-avatar", "Avatars_01.png");
+        this.load.image("lancer-avatar", "Avatars_02.png");
+        this.load.image("archer-avatar", "Avatars_03.png");
+        this.load.image("monk-avatar", "Avatars_04.png");
+
+    }
+
+    loadLogo() {
+        this.load.setPath("assets/tiny_swords_free_pack/UI Elements/UI Elements/Human Avatars")
+        this.load.image("logo", "Avatars_01.png");
     }
 
     create() {
-        // Create bitmap font and load it in cache
-        const config = {
-            image: 'knighthawks',
-            width: 31,
-            height: 25,
-            chars: Phaser.GameObjects.RetroFont.TEXT_SET6,
-            charsPerRow: 10,
-            spacing: { x: 1, y: 1 }
-        };
-        this.cache.bitmapFont.add('knighthawks', Phaser.GameObjects.RetroFont.Parse(this, config));
-
         // When all the assets are loaded go to the next scene
         this.scene.start("SplashScene");
     }
