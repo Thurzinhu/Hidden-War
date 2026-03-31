@@ -45,15 +45,15 @@ export class Fase1Scene extends Scene {
         const portalX = 900; // Mantém no meio na horizontal
         const portalY = 850; // Aumentamos o Y para ele descer para a areia
         
-        // Cria a zona de colisão
+        // Cria a zona de colisão como corpo estático para não ser empurrada pelo jogador
         const portal = this.add.zone(portalX, portalY, 120, 120);
-        this.physics.add.existing(portal);
-
-        // Retângulo amarelo para você ver onde está o portal
-        this.add.rectangle(portalX, portalY, 120, 120, 0xffff00, 0.4).setDepth(50);
+        this.physics.add.existing(portal, true);
 
         // A MÁGICA: Quando o jogador pisar no portal, muda de cena!
+        this.portalActivated = false;
         this.physics.add.overlap(this.player, portal, () => {
+            if (this.portalActivated) return;
+            this.portalActivated = true;
             this.scene.start("Fase2Scene");
         });
     }
