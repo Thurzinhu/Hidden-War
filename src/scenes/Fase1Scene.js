@@ -41,16 +41,16 @@ export class Fase1Scene extends Scene {
         this.cursors = this.input.keyboard.createCursorKeys();
 
         // --- O PORTAL PARA A FASE 2 ---
-        // O teu mapa tem 1856x1024 de tamanho. O centro é perto de 900x500.
-        const portalX = 900; // Mantém no meio na horizontal
-        const portalY = 850; // Aumentamos o Y para ele descer para a areia
+        const portalX = 900; 
+        const portalY = 850; 
         
-        // Cria a zona de colisão como corpo estático para não ser empurrada pelo jogador
+        // Zona de colisão
         const portal = this.add.zone(portalX, portalY, 120, 120);
-        this.physics.add.existing(portal, true);
+        this.physics.add.existing(portal);
 
-        // A MÁGICA: Quando o jogador pisar no portal, muda de cena!
-        this.portalActivated = false;
+        // Retângulo amarelo
+        this.add.rectangle(portalX, portalY, 120, 120, 0xffff00, 0.4).setDepth(50);
+
         this.physics.add.overlap(this.player, portal, () => {
             if (this.portalActivated) return;
             this.portalActivated = true;

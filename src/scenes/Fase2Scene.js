@@ -11,7 +11,7 @@ export class Fase2Scene extends Scene {
     }
 
     create() {
-        // 1. Carrega o teu mapa dos Ossos
+        // 1. Carrega mapa de ossos
         const map = this.make.tilemap({ key: 'mapaOssos' });
         const tileset = map.addTilesetImage(map.tilesets[0].name, 'tilesFase2');
 
@@ -40,7 +40,7 @@ export class Fase2Scene extends Scene {
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
-        // A tua neblina
+        // neblina
         this.add.rectangle(0, 0, map.widthInPixels, map.heightInPixels, 0xbababa, 0.2)
             .setOrigin(0, 0)
             .setDepth(100); 

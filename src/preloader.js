@@ -9,11 +9,11 @@ export class Preloader extends Phaser.Scene {
         // --- INÍCIO DA CARGA DOS MAPAS ---
         this.load.setPath("assets/map");
         
-        // Fase 1: Mapa da Floresta (do seu colega)
+        // Fase 1: Mapa da Floresta
         this.load.image("tilesFase1", "spritesheet_floresta.png");
         this.load.tilemapTiledJSON("mapaFloresta", "mapa1_floresta.json");
         
-        // Fase 2: Mapa do Vale dos Ossos (o seu mapa)
+        // Fase 2: Mapa do Vale dos Ossos 
         this.load.image("tilesFase2", "spritesheet_ossos.png");
         this.load.tilemapTiledJSON("mapaOssos", "mapa2_ossos.json"); 
         // --- FIM DA CARGA DOS MAPAS ---
