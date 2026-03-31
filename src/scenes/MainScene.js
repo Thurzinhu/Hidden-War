@@ -29,12 +29,12 @@ export class MainScene extends Scene {
             if (hasCollider) {
                 layerObj.setCollisionByExclusion([-1]);
             }
-            const debugGraphics = this.add.graphics().setAlpha(0.75);
-            layerObj.renderDebug(debugGraphics, {
-                tileColor: null,
-                collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255),
-                faceColor: new Phaser.Display.Color(40, 39, 37, 255)
-            });
+            // const debugGraphics = this.add.graphics().setAlpha(0.75);
+            // layerObj.renderDebug(debugGraphics, {
+            //     tileColor: null,
+            //     collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255),
+            //     faceColor: new Phaser.Display.Color(40, 39, 37, 255)
+            // });
         }  
         
 
@@ -47,7 +47,7 @@ export class MainScene extends Scene {
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
-        this.physics.world.createDebugGraphic();
+        // this.physics.world.createDebugGraphic();
 
     }
 
