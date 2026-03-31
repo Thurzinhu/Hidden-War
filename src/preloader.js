@@ -6,10 +6,17 @@ export class Preloader extends Phaser.Scene {
     }
 
     preload() {
-        // load 'forest' assets
+        // --- INÍCIO DA CARGA DOS MAPAS ---
         this.load.setPath("assets/map");
-        this.load.image("spritesheet");
-        this.load.tilemapTiledJSON("forest", "map.json");
+        
+        // Fase 1: Mapa da Floresta
+        this.load.image("tilesFase1", "spritesheet_floresta.png");
+        this.load.tilemapTiledJSON("mapaFloresta", "mapa1_floresta.json");
+        
+        // Fase 2: Mapa do Vale dos Ossos 
+        this.load.image("tilesFase2", "spritesheet_ossos.png");
+        this.load.tilemapTiledJSON("mapaOssos", "mapa2_ossos.json"); 
+        // --- FIM DA CARGA DOS MAPAS ---
         
         this.load.setPath("assets/tiny_swords_free_pack/Units/Black Units/Warrior");
         this.load.spritesheet("warrior-idle", "Warrior_Idle.png", {
