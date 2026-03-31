@@ -1,8 +1,6 @@
-# Phaser's Revenge
+# Hidden Wars
 
-Phaser's Revenge is an adaptation of the classic game Space Invaders.
-
-Your mission is to shoot the enemy ship and dodge its attacks to score as many points as possible in a short amount of time.
+Hidden Wars is an RPG turn based game.
 
 ## Instructions
 
@@ -12,4 +10,4 @@ Your mission is to shoot the enemy ship and dodge its attacks to score as many p
 4. If you want to build the project, run `npm run build`.
 
 
-![screenshot](screenshot.png)
+![screenshot](public/screenshot.png)
