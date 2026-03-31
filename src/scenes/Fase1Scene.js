@@ -15,11 +15,10 @@ export class Fase1Scene extends Scene {
         const map = this.make.tilemap({ key: 'mapaFloresta' });
         const tileset = map.addTilesetImage(map.tilesets[0].name, 'tilesFase1');
 
-        this.player = new Player({ scene: this });
+        this.player = new Player({ scene: this, type: 'warrior' });
+        //   const spawnPoint = map.findObject("Objects", obj => obj.name === "Spawn Point");
         this.player.setDepth(10);
-        this.player.setPosition(256, 320);
-        this.player.body.setSize(30, 20); 
-        this.player.body.setOffset(80, 90); 
+        this.player.setPosition(25*64, 18*64);
 
         for (const layer of map.layers) {
             const layerObj = map.createLayer(layer.name, tileset);
@@ -29,6 +28,12 @@ export class Fase1Scene extends Scene {
                 layerObj.setCollisionByExclusion([-1]);
                 this.physics.add.collider(this.player, layerObj);
             }
+            const debugGraphics = this.add.graphics().setAlpha(0.75).setDepth(999);
+            layerObj.renderDebug(debugGraphics, {
+                tileColor: null,
+                collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255),
+                faceColor: new Phaser.Display.Color(40, 39, 37, 255)
+            });
         }  
 
         const camera = this.cameras.main;
@@ -56,6 +61,8 @@ export class Fase1Scene extends Scene {
             this.portalActivated = true;
             this.scene.start("Fase2Scene");
         });
+
+        this.physics.world.createDebugGraphic();
     }
 
     update(time, delta) {

@@ -3,13 +3,15 @@ import { Physics } from "phaser";
 export class Player extends Physics.Arcade.Sprite {
     scene = null;
     walkSpeed = 180;
+    type = "warrior";
 
-    constructor({scene}) {
-        super(scene, 50, 50, "warrior-idle");
+    constructor({ scene, type }) {
+        super(scene, 50, 50, `${type}-idle`);
         this.scene = scene;
+        this.type = type;
         this.scene.add.existing(this);
         this.scene.physics.add.existing(this);
-        this.body.setSize(40, 40);
+        this.body.setSize(35, 35);
         this.createPlayerAnimations();
     }
 
@@ -17,13 +19,13 @@ export class Player extends Physics.Arcade.Sprite {
         const anims = this.scene.anims;
         anims.create({
             key: 'idle',
-            frames: anims.generateFrameNumbers("warrior-idle"),
+            frames: anims.generateFrameNumbers(`${this.type}-idle`),
             frameRate: 16,
             repeat: -1,
         })
         anims.create({
             key: 'run',
-            frames: anims.generateFrameNumbers("warrior-run"),
+            frames: anims.generateFrameNumbers(`${this.type}-run`),
             frameRate: 16,
             repeat: -1,
         })
