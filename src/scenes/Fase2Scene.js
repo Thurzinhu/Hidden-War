@@ -1,38 +1,79 @@
 import { Scene } from "phaser";
 import { Player } from "../gameobjects/Player";
 
+const TRANSPARENT_TILES = [45, 59, 66, 69, 82, 102, 125, 135, 141, 144, 146, 161, 164, 195, 205, 274, 278, 294];
+const SHADE_LAYERS = ['Obstacles', 'Trees', 'Trees (Copy)'];
+
 export class Fase2Scene extends Scene {
-    controls = null;
     player = null;
     cursors = null;
+    shadeLayers = [];
 
     constructor() {
         super("Fase2Scene");
     }
 
     create() {
-        // 1. Carrega mapa de ossos
         const map = this.make.tilemap({ key: 'mapaOssos' });
         const tileset = map.addTilesetImage(map.tilesets[0].name, 'tilesFase2');
 
+        // Criar layers em ordem e guardar referências
+        const layers = {};
+        for (const layerData of map.layers) {
+            layers[layerData.name] = map.createLayer(layerData.name, tileset);
+        }
+
+        // === COLISÃO DO OCEAN ===
+        // Bloquear apenas onde NÃO há tile de Ground em cima (água de verdade)
+        const oceanLayer = layers['Ocean'];
+        const groundLayer = layers['Ground'];
+        const bridgeLayer = layers['Bridges'];
+
+        oceanLayer.forEachTile(tile => {
+            if (tile.index === -1) return;
+            const groundTile = groundLayer.getTileAt(tile.x, tile.y);
+            const bridgeTile = bridgeLayer.getTileAt(tile.x, tile.y);
+            const hasGround = groundTile && groundTile.index !== -1;
+            const hasBridge = bridgeTile && bridgeTile.index !== -1;
+            if (!hasGround && !hasBridge) {
+                tile.setCollision(true, true, true, true);
+            }
+        });
+
+        // Passe 2: Paredes do túnel — 2 tiles de espessura
+        bridgeLayer.forEachTile(tile => {
+            if (tile.index === -1) return;
+            for (const dy of [-1, -2, 1, 2]) {  // ← 2 tiles de distância
+                const adjOcean  = oceanLayer.getTileAt(tile.x, tile.y + dy);
+                const adjBridge = bridgeLayer.getTileAt(tile.x, tile.y + dy);
+                if (adjOcean?.index > 0 && !(adjBridge?.index > 0)) {
+                    adjOcean.setCollision(true, true, true, true);
+                }
+            }
+        });
+
         this.player = new Player({ scene: this });
         this.player.setDepth(10);
-        this.player.setPosition(701, 634);
-        this.player.body.setSize(30, 20); 
-        this.player.body.setOffset(80, 90); 
+        this.player.setPosition(2672, 2434);
+        this.player.setScale(2.2);
+        this.player.increaseSpeed(200);
+        this.player.body.setSize(40, 20);
+        this.player.body.setOffset(80, 90);
 
-        for (const layer of map.layers) {
-            const layerObj = map.createLayer(layer.name, tileset);
-            const hasCollider = layer.properties?.some(p => p.name === 'collider' && p.value === true);
+        this.physics.add.collider(this.player, oceanLayer);
 
-            if (hasCollider) {
-                layerObj.setCollisionByExclusion([-1]);
-                this.physics.add.collider(this.player, layerObj);
+        // === SHADE NAS LAYERS DE VEGETAÇÃO ===
+        this.shadeLayers = [];
+        for (const name of SHADE_LAYERS) {
+            if (layers[name]) {
+                layers[name].setDepth(20); // acima do player (depth 10)
+                this.shadeLayers.push(layers[name]);
             }
-        }  
+        }
 
         const camera = this.cameras.main;
         camera.startFollow(this.player);
+        camera.setZoom(0.35);
         camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 
         this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
@@ -40,19 +81,36 @@ export class Fase2Scene extends Scene {
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
-        // neblina
         this.add.rectangle(0, 0, map.widthInPixels, map.heightInPixels, 0xbababa, 0.2)
             .setOrigin(0, 0)
-            .setDepth(100); 
-            this.input.on('pointerdown', (pointer) => {
-        const worldX = pointer.worldX;
-        const worldY = pointer.worldY;
-        console.log(`Nascer aqui: this.player.setPosition(${Math.round(worldX)}, ${Math.round(worldY)});`);
+            .setDepth(100);
+
+        this.input.on('pointerdown', (pointer) => {
+            console.log(`setPosition(${Math.round(pointer.worldX)}, ${Math.round(pointer.worldY)})`);
         });
     }
 
     update(time, delta) {
         this.player.update(this.cursors);
+        this._updateShadeEffect();
     }
-    
+
+    _updateShadeEffect() {
+        // Checar pelo centro do corpo físico do player
+        const px = this.player.body.center.x;
+        const py = this.player.body.center.y;
+
+        let underVegetation = false;
+        for (const layer of this.shadeLayers) {
+            const tile = layer.getTileAtWorldXY(px, py);
+            if (tile && tile.index > 0 && !TRANSPARENT_TILES.includes(tile.index)) {
+                underVegetation = true;
+                break;
+            }
+        }
+
+        const targetAlpha = underVegetation ? 0.35 : 1.0;
+        // Transição suave
+        this.player.setAlpha(Phaser.Math.Linear(this.player.alpha, targetAlpha, 0.15));
+    }
 }

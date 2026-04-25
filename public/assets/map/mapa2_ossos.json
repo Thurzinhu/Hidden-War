@@ -6,7 +6,7 @@
     {
       "id": 1,
       "name": "Ocean",
-      "opacity": 1.0,
+      "opacity": 1,
       "type": "tilelayer",
       "visible": true,
       "x": 0,
@@ -17533,14 +17533,14 @@
         {
           "name": "collider",
           "type": "bool",
-          "value": false
+          "value": true
         }
       ]
     },
     {
       "id": 2,
       "name": "Ground",
-      "opacity": 1.0,
+      "opacity": 1,
       "type": "tilelayer",
       "visible": true,
       "x": 0,
@@ -35067,14 +35067,14 @@
         {
           "name": "collider",
           "type": "bool",
-          "value": true
+          "value": false
         }
       ]
     },
     {
       "id": 3,
       "name": "Obstacles",
-      "opacity": 1.0,
+      "opacity": 1,
       "type": "tilelayer",
       "visible": true,
       "x": 0,
@@ -52601,14 +52601,14 @@
         {
           "name": "collider",
           "type": "bool",
-          "value": false
+          "value": true
         }
       ]
     },
     {
       "id": 4,
       "name": "Trees",
-      "opacity": 1.0,
+      "opacity": 1,
       "type": "tilelayer",
       "visible": true,
       "x": 0,
@@ -70135,14 +70135,14 @@
         {
           "name": "collider",
           "type": "bool",
-          "value": false
+          "value": true
         }
       ]
     },
     {
       "id": 5,
       "name": "Trees (Copy)",
-      "opacity": 1.0,
+      "opacity": 1,
       "type": "tilelayer",
       "visible": true,
       "x": 0,
@@ -87669,14 +87669,14 @@
         {
           "name": "collider",
           "type": "bool",
-          "value": false
+          "value": true
         }
       ]
     },
     {
       "id": 6,
       "name": "Bridges",
-      "opacity": 1.0,
+      "opacity": 1,
       "type": "tilelayer",
       "visible": true,
       "x": 0,
@@ -105203,7 +105203,7 @@
         {
           "name": "collider",
           "type": "bool",
-          "value": true
+          "value": false
         }
       ]
     }
@@ -105213,23 +105213,23 @@
   "orientation": "orthogonal",
   "renderorder": "right-down",
   "tiledversion": "1.11.0",
-  "tileheight": 16,
+  "tileheight": 64,
   "tilesets": [
     {
       "firstgid": 1,
       "name": "spritefusion",
-      "tilewidth": 16,
-      "tileheight": 16,
+      "tilewidth": 64,
+      "tileheight": 64,
       "margin": 0,
       "spacing": 0,
       "columns": 8,
       "tilecount": 464,
-      "image": "spritesheet.png",
-      "imagewidth": 128,
-      "imageheight": 928
+      "image": "spritesheet_ossos.png",
+      "imagewidth": 512,
+      "imageheight": 3712
     }
   ],
-  "tilewidth": 16,
+  "tilewidth": 64,
   "type": "map",
   "version": "1.10",
   "width": 139
