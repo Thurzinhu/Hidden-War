@@ -56,6 +56,26 @@ export class Fase1Scene extends Scene {
             this.portalActivated = true;
             this.scene.start("Fase2Scene");
         });
+
+        this.events.on('startBattle', () => {
+        
+        // Efeito visual de transição para a batalha
+        this.cameras.main.flash(300, 255, 255, 255); 
+        
+        this.time.delayedCall(300, () => {
+            // Pausa TUDO na cena atual (física, animações, etc)
+            this.scene.pause(); 
+            
+            // Sobrepõe a cena de batalha
+            this.scene.launch('BattleScene', { mapLevel: 1 }); 
+        });
+    });
+
+    // Escuta o evento disparado pela BattleScene quando o jogador ganha
+    this.events.on('resumeExploration', () => {
+        // O método resumeExploration() foi aquele que criamos dentro da classe Player.js
+        this.player.resumeExploration();
+    });
     }
 
     update(time, delta) {

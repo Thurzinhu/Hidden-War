@@ -7,6 +7,8 @@ import { Fase1Scene } from "./scenes/Fase1Scene";
 import { Fase2Scene } from "./scenes/Fase2Scene";
 import { MenuScene } from "./scenes/MenuScene";
 import { SplashScene } from "./scenes/SplashScene";
+//Cena de batalha
+import BattleScene from './scenes/BattleScene.js';
 
 const config = {
     type: Phaser.AUTO,
@@ -33,7 +35,8 @@ const config = {
         Fase2Scene,
         MenuScene,
         HudScene,
-        GameOverScene
+        GameOverScene,
+        BattleScene
     ]
 };
 

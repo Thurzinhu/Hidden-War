@@ -4,6 +4,12 @@ export class Player extends Physics.Arcade.Sprite {
     scene = null;
     walkSpeed = 180;
 
+    distanceAccumulator = 0;
+    nextEncounterDistance = 0;
+    lastX = 0;
+    lastY = 0;
+    isExploring = true;
+
     constructor({scene}) {
         super(scene, 50, 50, "warrior-idle");
         this.scene = scene;
@@ -11,6 +17,10 @@ export class Player extends Physics.Arcade.Sprite {
         this.scene.physics.add.existing(this);
         this.body.setSize(40, 40);
         this.createPlayerAnimations();
+
+        this.lastX = this.x;
+        this.lastY = this.y;
+        this.nextEncounterDistance = this.generateNextEncounterTarget();
     }
 
     createPlayerAnimations() {
@@ -34,7 +44,7 @@ export class Player extends Physics.Arcade.Sprite {
 
     move(cursors) {
         this.body.setVelocity(0);
-        
+
         if (cursors.left.isDown) {
             this.body.setVelocityX(-this.walkSpeed);
         } else if (cursors.right.isDown) {
@@ -63,5 +73,57 @@ export class Player extends Physics.Arcade.Sprite {
 
     update(cursors) {
         this.move(cursors);
+
+        if (this.isExploring) {
+            this.checkRandomEncounter();
+        }
+    }
+
+    generateNextEncounterTarget() {
+        // Quantidade de pixels mínima e máxima para rodar pelo mapa até a batalha
+        const minDistance = 10; 
+        const maxDistance = 10; 
+        return Phaser.Math.Between(minDistance, maxDistance);
+    }
+
+    checkRandomEncounter() {
+        // Calcula a distância percorrida usando a matemática do próprio Phaser
+        const distanceMoved = Phaser.Math.Distance.Between(this.lastX, this.lastY, this.x, this.y);
+
+        if (distanceMoved > 0) {
+            this.distanceAccumulator += distanceMoved;
+            
+            // Atualiza as posições para o próximo frame
+            this.lastX = this.x;
+            this.lastY = this.y;
+
+            // Se atingiu a cota de distância, inicia a batalha
+            if (this.distanceAccumulator >= this.nextEncounterDistance) {
+                this.iniciarBatalha();
+            }
+        }
+    }
+
+    iniciarBatalha() {
+        console.log("Inimigo encontrado!");
+        
+        // Trava o jogador
+        this.isExploring = false;
+        this.body.setVelocity(0);
+        this.play("idle", true);
+
+        // Zera tudo para a próxima exploração
+        this.distanceAccumulator = 0;
+        this.nextEncounterDistance = this.generateNextEncounterTarget();
+
+        // Dispara o evento para a Fase1Scene cuidar da troca de tela
+        this.scene.events.emit('startBattle'); 
+    }
+    
+    resumeExploration() {
+        this.isExploring = true;
+        // Reinicia a posição salva para não dar um salto no cálculo ao voltar da batalha
+        this.lastX = this.x;
+        this.lastY = this.y;
     }
 }
