@@ -9,6 +9,8 @@ export class Preloader extends Phaser.Scene {
         this.loadPhasesMap();
         this.loadPlayerAssets();
         this.loadLogo();
+        this.loadEnemies();
+        this.loadFonts();
 
         // Event to update the loading bar
         this.load.on("progress", (progress) => {
@@ -74,6 +76,24 @@ export class Preloader extends Phaser.Scene {
     loadLogo() {
         this.load.setPath("assets/tiny_swords_free_pack/UI Elements/UI Elements/Human Avatars")
         this.load.image("logo", "Avatars_01.png");
+    }
+
+    loadEnemies() {
+        this.load.setPath("assets");
+        this.load.spritesheet('pawn_enemy_red', 'tiny_swords_free_pack/Units/Red Units/Pawn/Pawn_Idle.png', {
+            frameWidth: 192,
+            frameHeight: 192
+        });
+        this.load.spritesheet('lancer_enemy_blue', 'tiny_swords_free_pack/Units/Black Units/Lancer/Lancer_Idle.png', {
+            frameWidth: 192,
+            frameHeight: 192
+        });
+    }
+
+    loadFonts() {
+        this.load.setPath("assets");
+        this.load.bitmapFont("pixelfont", "fonts/pixelfont.png", "fonts/pixelfont.xml");
+        this.load.image("knighthawks", "fonts/knight3.png");
     }
 
     create() {
