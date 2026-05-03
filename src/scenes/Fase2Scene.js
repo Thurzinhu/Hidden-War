@@ -23,34 +23,30 @@ export class Fase2Scene extends Scene {
             layers[layerData.name] = map.createLayer(layerData.name, tileset);
         }
 
-        // === COLISÃO DO OCEAN ===
-        // Bloquear apenas onde NÃO há tile de Ground em cima (água de verdade)
+        // === COLISÃO ===
+        // A colisão desta fase é controlada pela layer "Collision"
+        const collisionLayer = layers['Collision'];
         const oceanLayer = layers['Ocean'];
         const groundLayer = layers['Ground'];
         const bridgeLayer = layers['Bridges'];
 
-        oceanLayer.forEachTile(tile => {
-            if (tile.index === -1) return;
-            const groundTile = groundLayer.getTileAt(tile.x, tile.y);
-            const bridgeTile = bridgeLayer.getTileAt(tile.x, tile.y);
-            const hasGround = groundTile && groundTile.index !== -1;
-            const hasBridge = bridgeTile && bridgeTile.index !== -1;
-            if (!hasGround && !hasBridge) {
-                tile.setCollision(true, true, true, true);
-            }
-        });
+        if (collisionLayer) {
+            collisionLayer.setCollisionByExclusion([-1]);
+        }
 
-        // Passe 2: Paredes do túnel — 2 tiles de espessura
-        bridgeLayer.forEachTile(tile => {
-            if (tile.index === -1) return;
-            for (const dy of [-1, -2, 1, 2]) {  // ← 2 tiles de distância
-                const adjOcean  = oceanLayer.getTileAt(tile.x, tile.y + dy);
-                const adjBridge = bridgeLayer.getTileAt(tile.x, tile.y + dy);
-                if (adjOcean?.index > 0 && !(adjBridge?.index > 0)) {
-                    adjOcean.setCollision(true, true, true, true);
+        // Colisão do ocean: bloquear onde nao ha ground nem bridge por cima
+        if (oceanLayer && groundLayer && bridgeLayer) {
+            oceanLayer.forEachTile(tile => {
+                if (tile.index === -1) return;
+                const groundTile = groundLayer.getTileAt(tile.x, tile.y);
+                const bridgeTile = bridgeLayer.getTileAt(tile.x, tile.y);
+                const hasGround = groundTile && groundTile.index !== -1;
+                const hasBridge = bridgeTile && bridgeTile.index !== -1;
+                if (!hasGround && !hasBridge) {
+                    tile.setCollision(true, true, true, true);
                 }
-            }
-        });
+            });
+        }
 
         this.player = new Player({ scene: this });
         this.player.setDepth(10);
@@ -60,7 +56,12 @@ export class Fase2Scene extends Scene {
         this.player.body.setSize(40, 20);
         this.player.body.setOffset(80, 90);
 
-        this.physics.add.collider(this.player, oceanLayer);
+        if (collisionLayer) {
+            this.physics.add.collider(this.player, collisionLayer);
+        }
+        if (oceanLayer) {
+            this.physics.add.collider(this.player, oceanLayer);
+        }
 
         // === SHADE NAS LAYERS DE VEGETAÇÃO ===
         this.shadeLayers = [];
