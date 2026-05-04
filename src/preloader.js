@@ -38,20 +38,39 @@ export class Preloader extends Phaser.Scene {
             frameWidth: 192,
             frameHeight: 192,
         });
+        
+        this.load.setPath("assets/tiny_swords_free_pack/Units/Black Units/Archer");
+        this.load.spritesheet("archer-idle", "Archer_Idle.png", {
+            frameWidth: 192,
+            frameHeight: 192,
+        });
+        this.load.spritesheet("archer-run", "Archer_Run.png", {
+            frameWidth: 192,
+            frameHeight: 192,
+        });
 
-        // Load all the assets
-        this.load.setPath("assets");
-        this.load.image("logo", "logo.png");
-        this.load.image("floor");
-        this.load.image("background", "background.png");
+        this.load.setPath("assets/tiny_swords_free_pack/Units/Black Units/Lancer");
+        this.load.spritesheet("lancer-idle", "Lancer_Idle.png", {
+            frameWidth: 320,
+            frameHeight: 320,
+        });
+        this.load.spritesheet("lancer-run", "Lancer_Run.png", {
+            frameWidth: 320,
+            frameHeight: 320,
+        });
 
-        this.load.image("player", "player/player.png");
-        this.load.atlas("propulsion-fire", "player/propulsion/propulsion-fire.png", "player/propulsion/propulsion-fire_atlas.json");
-        this.load.animation("propulsion-fire-anim", "player/propulsion/propulsion-fire_anim.json");
+        this.load.setPath("assets/tiny_swords_free_pack/Units/Black Units/Monk");
+        this.load.spritesheet("monk-idle", "Idle.png", {
+            frameWidth: 192,
+            frameHeight: 192,
+        });
+        this.load.spritesheet("monk-run", "Run.png", {
+            frameWidth: 192,
+            frameHeight: 192,
+        });
 
-        // Bullets
-        this.load.image("bullet", "player/bullet.png");
-        this.load.image("flares")
+        this.loadPlayerAvatars();
+    }
 
         this.load.setPath("assets/tiny_swords_free_pack/Units/Red Units/Pawn");
         this.load.spritesheet("pawn_enemy_red", "Pawn_Idle.png", {
@@ -67,9 +86,7 @@ export class Preloader extends Phaser.Scene {
 
         this.load.setPath("assets");
 
-        // Fonts
-        this.load.bitmapFont("pixelfont", "fonts/pixelfont.png", "fonts/pixelfont.xml");
-        this.load.image("knighthawks", "fonts/knight3.png");
+    }
 
     }
 
