@@ -57,7 +57,7 @@ export class Fase1Scene extends Scene {
             this.scene.start("Fase2Scene");
         });
 
-        this.events.on('startBattle', () => {
+        this.events.on('startBattle', (playerData) => {
         
         // Efeito visual de transição para a batalha
         this.cameras.main.flash(300, 255, 255, 255); 
@@ -67,18 +67,26 @@ export class Fase1Scene extends Scene {
             this.scene.pause(); 
             
             // Sobrepõe a cena de batalha
-            this.scene.launch('BattleScene', { mapLevel: 1 }); 
+            this.scene.launch('BattleScene', { 
+                    mapLevel: 1,
+                    playerHp: playerData.hp,
+                    playerMaxHp: playerData.maxHp
+                }); 
         });
     });
 
     // Escuta o evento disparado pela BattleScene quando o jogador ganha
-    this.events.on('resumeExploration', () => {
-        // O método resumeExploration() foi aquele que criamos dentro da classe Player.js
-        this.player.resumeExploration();
-    });
+        this.events.on('resumeExploration', (batalhaData) => {
+            // Salva a vida resultante no objeto do jogador
+            this.player.hp = batalhaData.newHp;
+            
+            this.player.resumeExploration();
+            console.log(`Exploração retomada. HP atual: ${this.player.hp}`);
+        });
     }
 
     update(time, delta) {
         this.player.update(this.cursors);
     }
+    
 }

@@ -1,55 +1,80 @@
 import Phaser from 'phaser';
 
+const inimigosDaFloresta = [
+    { name: 'Peão Vermelho', maxHp: 50, attack: 8, speed: 8, spriteKey: 'pawn_enemy_red' },
+    { name: 'Lanceiro Negro', maxHp: 60, attack: 10, speed: 10, spriteKey: 'lancer_enemy_blue' }
+];
+
 export default class BattleScene extends Phaser.Scene {
     constructor() {
         super('BattleScene');
     }
 
     init(data) {
-        // Recebe os dados da cena de exploração
         this.mapLevel = data.mapLevel || 1;
+        this.incomingPlayerHp = data.playerHp || 100;
+        this.incomingPlayerMaxHp = data.playerMaxHp || 100;
     }
 
     create() {
         console.log("Batalha Iniciada!");
+        this.cameras.main.setBackgroundColor('rgba(40, 40, 40, 1)');        
 
-        // Adiciona o Herói à esquerda (x: 150, y: 250)
-        this.playerSprite = this.add.sprite(150, 250, 'warrior-idle');
-        this.playerSprite.setScale(2); // Aumenta o tamanho se ficar pequeno
-
-        // Adiciona o Inimigo à direita (x: 650, y: 250)
-        this.enemySprite = this.add.sprite(650, 250, 'enemy-blue');
-        this.enemySprite.setScale(2);
-        this.enemySprite.flipX = true; // Inverte horizontalmente para encarar o herói
-
-        // 1. Fundo da Batalha (Pode ser substituído por uma imagem de background)
-        this.cameras.main.setBackgroundColor('rgba(40, 40, 40, 1)');
-
-        // 2. Definição das Entidades (Arquitetura inicial do CTB)
-        // O "actionValue" é o acumulador. Quando chega a 100, é o turno do personagem.
+        const inimigoSorteado = Phaser.Math.RND.pick(inimigosDaFloresta);
+      
         this.playerStats = {
             name: 'Herói',
-            hp: 100,
-            maxHp: 100,
+            hp: this.incomingPlayerHp,
+            maxHp: this.incomingPlayerMaxHp,    
             attack: 15,
             speed: 12,
             actionValue: 0 
         };
-
+        
         this.enemyStats = {
-            name: 'Slime Sombrio',
-            hp: 50,
-            maxHp: 50,
-            attack: 8,
-            speed: 8,
+            name: inimigoSorteado.name,
+            hp: inimigoSorteado.maxHp,
+            maxHp: inimigoSorteado.maxHp,
+            attack: inimigoSorteado.attack,
+            speed: inimigoSorteado.speed,
+            spriteKey: inimigoSorteado.spriteKey,
             actionValue: 0
         };
 
-        // 3. UI Básica (Textos na tela)
-        this.playerText = this.add.text(50, 300, this.getPlayerStatus(), { font: '16px Arial', fill: '#00ff00' });
-        this.enemyText = this.add.text(500, 100, this.getEnemyStatus(), { font: '16px Arial', fill: '#ff0000' });
+        this.playerSprite = this.add.sprite(150, 250, 'warrior-idle');
+        this.playerSprite.setScale(1.5);
         
-        this.logText = this.add.text(50, 400, 'Um inimigo apareceu!', { font: '18px Arial', fill: '#ffffff' });
+        this.enemySprite = this.add.sprite(650, 250, this.enemyStats.spriteKey);
+        this.enemySprite.setScale(1.5);
+        this.enemySprite.flipX = true;
+
+        // 3. UI Básica (Textos na tela)
+        this.playerText = this.add.text(100, 80, this.getPlayerStatus(), { font: '16px Arial', fill: '#00ff00' });
+        this.enemyText = this.add.text(550, 80, this.getEnemyStatus(), { font: '16px Arial', fill: '#ff0000' });
+        
+        this.logText = this.add.text(50, 480, 'Um inimigo apareceu!', { font: '18px Arial', fill: '#ffffff' });
+
+        // 4. Animação dos personagens
+        if (!this.anims.exists('battle-hero-idle')) {
+            this.anims.create({
+                key: 'battle-hero-idle',
+                frames: this.anims.generateFrameNumbers('warrior-idle'),
+                frameRate: 16,
+                repeat: -1 // -1 faz a animação repetir em loop infinito
+            });
+        }
+        this.playerSprite.play('battle-hero-idle');
+
+        const enemyAnimKey = `battle-${this.enemyStats.spriteKey}-idle`;
+        if (!this.anims.exists(enemyAnimKey)) {
+            this.anims.create({
+                key: enemyAnimKey,
+                frames: this.anims.generateFrameNumbers(this.enemyStats.spriteKey, { start: 0, end: 5 }),
+                frameRate: 10,
+                repeat: -1
+            });
+        }
+        this.enemySprite.play(enemyAnimKey);
 
         // Impede ações enquanto a lógica calcula de quem é o turno
         this.isProcessingTurn = false;
@@ -96,15 +121,27 @@ export default class BattleScene extends Phaser.Scene {
 
     // --- TURNO DO JOGADOR ---
     startPlayerTurn() {
-        this.logText.setText('Seu turno! Pressione [ESPAÇO] para Atacar.');
+        this.logText.setText('Seu turno! [ESPAÇO] Atacar  |  [C] Curar');
         
         // Consome a barra de ação
         this.playerStats.actionValue -= 100; 
         
-        // Aguarda input do jogador
-        this.input.keyboard.once('keydown-SPACE', () => {
-            this.executeAttack(this.playerStats, this.enemyStats);
-        });
+        // Cria um ouvinte de teclado global para o turno
+        const handleTurnInput = (event) => {
+            // Se apertou ESPAÇO (Atacar)
+            if (event.code === 'Space') {
+                this.input.keyboard.off('keydown', handleTurnInput); // Remove o ouvinte para não bugar
+                this.executeAttack(this.playerStats, this.enemyStats);
+            } 
+            // Se apertou C (Curar)
+            else if (event.code === 'KeyC') {
+                this.input.keyboard.off('keydown', handleTurnInput); // Remove o ouvinte
+                this.executeHeal(this.playerStats);
+            }
+        };
+
+        // Liga o ouvinte aguardando o jogador apertar alguma tecla
+        this.input.keyboard.on('keydown', handleTurnInput);
     }
 
     // --- TURNO DO INIMIGO ---
@@ -138,6 +175,37 @@ export default class BattleScene extends Phaser.Scene {
         });
     }
 
+    executeHeal(character) {
+        // Define o valor da cura (ex: 25 de HP base + um valor aleatório entre -5 e 5)
+        let healAmount = 25 + Phaser.Math.Between(-5, 5); 
+        
+        character.hp += healAmount;
+
+        // Trava o HP para não ultrapassar a vida máxima
+        if (character.hp > character.maxHp) {
+            // Calcula o quanto curou de verdade (caso a vida estivesse quase cheia)
+            healAmount -= (character.hp - character.maxHp); 
+            character.hp = character.maxHp;
+        }
+
+        this.logText.setText(`${character.name} recuperou ${healAmount} de HP!`);
+        this.updateUI();
+
+        // Efeito visual: Flash verde na tela para indicar a cura
+        this.cameras.main.flash(300, 50, 255, 50);
+
+        // Deixa a cor do boneco verde rapidamente, depois volta ao normal
+        this.playerSprite.setTint(0x00ff00);
+        this.time.delayedCall(300, () => {
+            this.playerSprite.clearTint();
+        });
+
+        // Passa o turno adiante
+        this.time.delayedCall(1500, () => {
+            this.checkBattleEnd();
+        });
+    }
+
     checkBattleEnd() {
         if (this.enemyStats.hp <= 0) {
             this.logText.setText('Você venceu a batalha!');
@@ -163,7 +231,7 @@ export default class BattleScene extends Phaser.Scene {
             this.scene.resume('Fase1Scene');
             
             // Avisa o mapa para destravar o movimento do player
-            exploreScene.events.emit('resumeExploration');
+            exploreScene.events.emit('resumeExploration', { newHp: this.playerStats.hp });
         } else {
             // Em caso de Game Over, manda para a tela inicial
             this.scene.start('GameOverScene'); 

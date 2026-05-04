@@ -42,10 +42,19 @@ export class Preloader extends Phaser.Scene {
         this.load.image("bullet", "player/bullet.png");
         this.load.image("flares")
 
-        // Enemies
-        this.load.atlas("enemy-blue", "enemies/enemy-blue/enemy-blue.png", "enemies/enemy-blue/enemy-blue_atlas.json");
-        this.load.animation("enemy-blue-anim", "enemies/enemy-blue/enemy-blue_anim.json");
-        this.load.image("enemy-bullet", "enemies/enemy-bullet.png");
+        this.load.setPath("assets/tiny_swords_free_pack/Units/Red Units/Pawn");
+        this.load.spritesheet("pawn_enemy_red", "Pawn_Idle.png", {
+            frameWidth: 192,
+            frameHeight: 192,
+        });
+
+        this.load.setPath("assets/tiny_swords_free_pack/Units/Blue Units/Lancer");
+        this.load.spritesheet("lancer_enemy_blue", "Lancer_Idle.png", {
+            frameWidth: 192,
+            frameHeight: 192,
+        });
+
+        this.load.setPath("assets");
 
         // Fonts
         this.load.bitmapFont("pixelfont", "fonts/pixelfont.png", "fonts/pixelfont.xml");

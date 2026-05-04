@@ -4,6 +4,9 @@ export class Player extends Physics.Arcade.Sprite {
     scene = null;
     walkSpeed = 180;
 
+    hp = 100;
+    maxHp = 100;
+
     distanceAccumulator = 0;
     nextEncounterDistance = 0;
     lastX = 0;
@@ -117,7 +120,7 @@ export class Player extends Physics.Arcade.Sprite {
         this.nextEncounterDistance = this.generateNextEncounterTarget();
 
         // Dispara o evento para a Fase1Scene cuidar da troca de tela
-        this.scene.events.emit('startBattle'); 
+        this.scene.events.emit('startBattle', { hp: this.hp, maxHp: this.maxHp }); 
     }
     
     resumeExploration() {
