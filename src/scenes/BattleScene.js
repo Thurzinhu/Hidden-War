@@ -5,6 +5,11 @@ const inimigosDaFloresta = [
     { name: 'Lanceiro Negro', maxHp: 60, attack: 10, speed: 10, spriteKey: 'lancer_enemy_blue' }
 ];
 
+const inimigosDaFloresta = [
+    { name: 'Peão Vermelho', maxHp: 50, attack: 8, speed: 8, spriteKey: 'pawn_enemy_red' },
+    { name: 'Lanceiro Negro', maxHp: 60, attack: 10, speed: 10, spriteKey: 'lancer_enemy_blue' }
+];
+
 export default class BattleScene extends Phaser.Scene {
     constructor() {
         super('BattleScene');
@@ -18,7 +23,7 @@ export default class BattleScene extends Phaser.Scene {
 
     create() {
         console.log("Batalha Iniciada!");
-        this.cameras.main.setBackgroundColor('rgba(40, 40, 40, 1)');        
+        this.cameras.main.setBackgroundColor('rgb(187, 176, 176)');        
 
         const inimigoSorteado = Phaser.Math.RND.pick(inimigosDaFloresta);
       
