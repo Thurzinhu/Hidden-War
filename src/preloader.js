@@ -1,3 +1,4 @@
+import Phaser from 'phaser';
 // Class to preload all the assets
 // Remember you can load this assets in another scene if you need it
 export class Preloader extends Phaser.Scene {
@@ -38,20 +39,6 @@ export class Preloader extends Phaser.Scene {
             frameWidth: 192,
             frameHeight: 192,
         });
-
-        // Load all the assets
-        this.load.setPath("assets");
-        this.load.image("logo", "logo.png");
-        this.load.image("floor");
-        this.load.image("background", "background.png");
-
-        this.load.image("player", "player/player.png");
-        this.load.atlas("propulsion-fire", "player/propulsion/propulsion-fire.png", "player/propulsion/propulsion-fire_atlas.json");
-        this.load.animation("propulsion-fire-anim", "player/propulsion/propulsion-fire_anim.json");
-
-        // Bullets
-        this.load.image("bullet", "player/bullet.png");
-        this.load.image("flares")
 
         this.load.setPath("assets/tiny_swords_free_pack/Units/Red Units/Pawn");
         this.load.spritesheet("pawn_enemy_red", "Pawn_Idle.png", {
