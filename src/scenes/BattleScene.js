@@ -69,8 +69,8 @@ export default class BattleScene extends Phaser.Scene {
         if (!this.anims.exists(enemyAnimKey)) {
             this.anims.create({
                 key: enemyAnimKey,
-                frames: this.anims.generateFrameNumbers(this.enemyStats.spriteKey, { start: 0, end: 5 }),
-                frameRate: 10,
+                frames: this.anims.generateFrameNumbers(this.enemyStats.spriteKey),
+                frameRate: 16,
                 repeat: -1
             });
         }
