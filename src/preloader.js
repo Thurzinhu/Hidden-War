@@ -39,6 +39,39 @@ export class Preloader extends Phaser.Scene {
             frameWidth: 192,
             frameHeight: 192,
         });
+        
+        this.load.setPath("assets/tiny_swords_free_pack/Units/Black Units/Archer");
+        this.load.spritesheet("archer-idle", "Archer_Idle.png", {
+            frameWidth: 192,
+            frameHeight: 192,
+        });
+        this.load.spritesheet("archer-run", "Archer_Run.png", {
+            frameWidth: 192,
+            frameHeight: 192,
+        });
+
+        this.load.setPath("assets/tiny_swords_free_pack/Units/Black Units/Lancer");
+        this.load.spritesheet("lancer-idle", "Lancer_Idle.png", {
+            frameWidth: 320,
+            frameHeight: 320,
+        });
+        this.load.spritesheet("lancer-run", "Lancer_Run.png", {
+            frameWidth: 320,
+            frameHeight: 320,
+        });
+
+        this.load.setPath("assets/tiny_swords_free_pack/Units/Black Units/Monk");
+        this.load.spritesheet("monk-idle", "Idle.png", {
+            frameWidth: 192,
+            frameHeight: 192,
+        });
+        this.load.spritesheet("monk-run", "Run.png", {
+            frameWidth: 192,
+            frameHeight: 192,
+        });
+
+        this.loadPlayerAvatars();
+    
 
         this.load.setPath("assets/tiny_swords_free_pack/Units/Red Units/Pawn");
         this.load.spritesheet("pawn_enemy_red", "Pawn_Idle.png", {
@@ -54,11 +87,8 @@ export class Preloader extends Phaser.Scene {
 
         this.load.setPath("assets");
 
-        // Fonts
-        this.load.bitmapFont("pixelfont", "fonts/pixelfont.png", "fonts/pixelfont.xml");
-        this.load.image("knighthawks", "fonts/knight3.png");
-
     }
+
 
     loadLogo() {
         this.load.setPath("assets/tiny_swords_free_pack/UI Elements/UI Elements/Human Avatars")

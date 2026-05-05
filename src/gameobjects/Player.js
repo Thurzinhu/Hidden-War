@@ -146,4 +146,19 @@ export class Player extends Physics.Arcade.Sprite {
         this.walkSpeed = Math.max(speed, 50);
         console.log(`Velocidade definida para: ${this.walkSpeed}`);
     }
+
+    increaseSpeed(amount = 50) {
+        this.walkSpeed += amount;
+        console.log(`Velocidade aumentada para: ${this.walkSpeed}`);
+    }
+
+    decreaseSpeed(amount = 50) {
+        this.walkSpeed = Math.max(this.walkSpeed - amount, 50); // Mínimo de 50 para não ficar muito lento
+        console.log(`Velocidade diminuída para: ${this.walkSpeed}`);
+    }
+
+    setSpeed(speed) {
+        this.walkSpeed = Math.max(speed, 50);
+        console.log(`Velocidade definida para: ${this.walkSpeed}`);
+    }
 }
