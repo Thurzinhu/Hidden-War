@@ -86,8 +86,8 @@ export class Player extends Physics.Arcade.Sprite {
 
     generateNextEncounterTarget() {
         // Quantidade de pixels mínima e máxima para rodar pelo mapa até a batalha
-        const minDistance = 10; 
-        const maxDistance = 10; 
+        const minDistance = 200; 
+        const maxDistance = 600; 
         return Phaser.Math.Between(minDistance, maxDistance);
     }
 

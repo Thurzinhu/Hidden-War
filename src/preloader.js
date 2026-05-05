@@ -68,10 +68,7 @@ export class Preloader extends Phaser.Scene {
         this.load.spritesheet("monk-run", "Run.png", {
             frameWidth: 192,
             frameHeight: 192,
-        });
-
-        this.loadPlayerAvatars();
-    
+        });    
 
         this.load.setPath("assets/tiny_swords_free_pack/Units/Red Units/Pawn");
         this.load.spritesheet("pawn_enemy_red", "Pawn_Idle.png", {
