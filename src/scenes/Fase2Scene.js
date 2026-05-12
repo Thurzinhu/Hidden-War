@@ -92,6 +92,8 @@ export class Fase2Scene extends Scene {
                 // IMPORTANTE: Aqui passamos biome: 'caverna' (ou 'ossos')
                 this.scene.launch('BattleScene', { 
                     biome: 'ossos', 
+                    originSceneKey: 'Fase2Scene',
+                    battleOrigin: { x: this.player.x, y: this.player.y },
                     playerHp: playerData.hp,
                     playerMaxHp: playerData.maxHp
                 }); 

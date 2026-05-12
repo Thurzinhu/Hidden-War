@@ -5,7 +5,7 @@ export class Player extends Physics.Arcade.Sprite {
     walkSpeed = 180;
     type = "warrior";
 
-    hp = 10;
+    hp = 100;
     maxHp = 100;
 
     distanceAccumulator = 0;
