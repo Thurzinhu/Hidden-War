@@ -1,35 +1,61 @@
 import Phaser from 'phaser';
 import { Enemy } from '../gameobjects/Enemy';
 
+const BATTLEFIELD_CONFIG = {
+    floresta: {
+        mapKey: 'mapaFloresta',
+        tilesetKey: 'tilesFase1',
+        sceneKey: 'Fase1Scene',
+        fallbackColor: 0x486b3f,
+        overlayColor: 0x18321f,
+        title: 'Clareira da Floresta'
+    },
+    ossos: {
+        mapKey: 'mapaOssos',
+        tilesetKey: 'tilesFase2',
+        sceneKey: 'Fase2Scene',
+        fallbackColor: 0x4a4a53,
+        overlayColor: 0x24202a,
+        title: 'Vale dos Ossos'
+    }
+};
+
+const UI = {
+    panelFill: 0x141823,
+    panelStroke: 0xd9c27c,
+    playerAccent: 0x69d27d,
+    enemyAccent: 0xf06a6a,
+    text: '#f8efd7',
+    mutedText: '#c7b88d'
+};
+
 export default class BattleScene extends Phaser.Scene {
     constructor() {
         super('BattleScene');
     }
 
     init(data) {
-        if (!data) data = {}; 
-        this.biome = data.biome || 'floresta'; 
-        
+        if (!data) data = {};
+
+        this.biome = data.biome || 'floresta';
+        this.battlefieldConfig = BATTLEFIELD_CONFIG[this.biome] || BATTLEFIELD_CONFIG.floresta;
         this.mapLevel = data.mapLevel || 1;
         this.incomingPlayerHp = data.playerHp || 100;
         this.incomingPlayerMaxHp = data.playerMaxHp || 100;
+        this.battleOrigin = data.battleOrigin || { x: 640, y: 360 };
+        this.originSceneKey = data.originSceneKey || this.battlefieldConfig.sceneKey;
     }
 
     create() {
-        this.cameras.main.setBackgroundColor('rgb(187, 176, 176)');
+        this.cameras.main.setBackgroundColor(this.battlefieldConfig.fallbackColor);
 
-        // 1. BUSCAR DADOS DO JSON BASEADO NO BIOMA
+        this.createBattleBackdrop();
+        this.createBattleFrame();
+
         const allEnemies = this.cache.json.get('enemies_data');
-        
-        // Se o bioma não existir no JSON, usamos 'floresta' como fallback
-        const currentPool = allEnemies[this.biome] || allEnemies['floresta'];
-        const inimigoSorteadoData = Phaser.Math.RND.pick(currentPool);
+        const currentPool = allEnemies[this.biome] || allEnemies.floresta;
+        const enemyData = Phaser.Math.RND.pick(currentPool);
 
-        // 2. INSTANCIAR O INIMIGO (Usando a classe Enemy que criamos antes)
-        this.enemy = new Enemy(this, 650, 350, inimigoSorteadoData);
-        this.enemyStats = this.enemy; 
-
-        // 3. CONFIGURAR PLAYER (Pode virar uma classe PlayerBattle depois)
         this.playerStats = {
             name: 'Herói',
             hp: this.incomingPlayerHp,
@@ -39,65 +65,191 @@ export default class BattleScene extends Phaser.Scene {
             actionValue: 0
         };
 
-        this.playerSprite = this.add.sprite(150, 250, 'warrior-idle');
-        this.playerSprite.setScale(1.5);
+        this.createCombatants(enemyData);
+        this.createBattleUI();
 
-        // Animação Player
+        this.isProcessingTurn = false;
+        this.logMessage(`Um ${this.enemy.name} apareceu!`, 'Prepare sua ação quando a barra de turno carregar.');
+        this.time.delayedCall(1000, () => this.calculateNextTurn());
+    }
+
+    createBattleBackdrop() {
+        const { width, height } = this.scale;
+        const config = this.battlefieldConfig;
+
+        this.backdropContainer = this.add.container(0, 0).setDepth(-20);
+
+        const vignetteBase = this.add.rectangle(0, 0, width, height, config.fallbackColor).setOrigin(0);
+        this.backdropContainer.add(vignetteBase);
+
+        if (this.cache.tilemap.exists(config.mapKey) && this.textures.exists(config.tilesetKey)) {
+            const map = this.make.tilemap({ key: config.mapKey });
+            const tileset = map.addTilesetImage(map.tilesets[0].name, config.tilesetKey);
+            const scale = this.biome === 'ossos' ? 0.62 : 0.82;
+            const focusX = Phaser.Math.Clamp(this.battleOrigin.x || map.widthInPixels / 2, 0, map.widthInPixels);
+            const focusY = Phaser.Math.Clamp(this.battleOrigin.y || map.heightInPixels / 2, 0, map.heightInPixels);
+            const offsetX = width / 2 - focusX * scale;
+            const offsetY = height / 2 - focusY * scale;
+
+            let visualLayerDepth = -15;
+            for (const layerData of map.layers) {
+                if (layerData.name === 'Collision') continue;
+
+                const layer = map.createLayer(layerData.name, tileset, offsetX, offsetY);
+                layer.setScale(scale);
+                layer.setDepth(visualLayerDepth++);
+                layer.setAlpha(layerData.opacity ?? 1);
+            }
+        }
+
+        this.add.rectangle(0, 0, width, height, 0x000000, 0.22).setOrigin(0).setDepth(-5);
+        this.add.rectangle(0, 0, width, height, config.overlayColor, 0.20).setOrigin(0).setDepth(-4);
+        this.add.rectangle(0, 0, width, 120, 0x000000, 0.36).setOrigin(0).setDepth(-3);
+        this.add.rectangle(0, height - 190, width, 190, 0x000000, 0.42).setOrigin(0).setDepth(-3);
+
+        this.add.ellipse(width * 0.24, 520, 340, 70, 0x000000, 0.26).setDepth(-2);
+        this.add.ellipse(width * 0.77, 520, 380, 76, 0x000000, 0.28).setDepth(-2);
+
+        this.add.text(34, 24, config.title, {
+            fontFamily: 'Georgia, serif',
+            fontSize: '28px',
+            color: UI.text,
+            stroke: '#1b1209',
+            strokeThickness: 5
+        }).setDepth(20);
+    }
+
+    createBattleFrame() {
+        const { width, height } = this.scale;
+        this.add.rectangle(12, 12, width - 24, height - 24, 0x000000, 0).setOrigin(0).setStrokeStyle(3, UI.panelStroke, 0.8).setDepth(15);
+        this.add.rectangle(22, 22, width - 44, height - 44, 0x000000, 0).setOrigin(0).setStrokeStyle(1, 0xffffff, 0.22).setDepth(15);
+    }
+
+    createCombatants(enemyData) {
+        this.playerSprite = this.add.sprite(300, 425, 'warrior-idle').setScale(2.05).setDepth(5);
+
         if (!this.anims.exists('battle-hero-idle')) {
             this.anims.create({
                 key: 'battle-hero-idle',
                 frames: this.anims.generateFrameNumbers('warrior-idle', { start: 0, end: 5 }),
-                frameRate: 10, repeat: -1 
+                frameRate: 10,
+                repeat: -1
             });
         }
         this.playerSprite.play('battle-hero-idle');
 
-        // 4. UI
-        this.playerText = this.add.text(100, 80, this.getPlayerStatus(), { font: '16px Arial', fill: '#00ff00' });
-        this.enemyText = this.add.text(550, 80, this.getEnemyStatus(), { font: '16px Arial', fill: '#ff0000' });
-        this.logText = this.add.text(50, 480, `Um ${this.enemy.name} apareceu!`, { font: '18px Arial', fill: '#ffffff' });
-
-        this.isProcessingTurn = false;
-        this.time.delayedCall(1000, () => this.calculateNextTurn());
+        this.enemy = new Enemy(this, 980, 405, enemyData);
+        this.enemy.setScale(enemyData.spriteKey?.includes('lancer') ? 1.45 : 2.0);
+        this.enemy.setDepth(5);
+        this.enemyStats = this.enemy;
     }
 
-    // Modifique o executeAttack para usar o método da classe
-    executeAttack(attacker, defender) {
-        let damage = attacker.attack + Phaser.Math.Between(-2, 2);
-        
-        // Se o defensor for o objeto da classe Enemy, usamos o método takeDamage
-        if (defender.takeDamage) {
-            defender.takeDamage(damage);
-        } else {
-            defender.hp = Math.max(0, defender.hp - damage);
-        }
+    createBattleUI() {
+        this.playerCard = this.createStatusCard(48, 92, 430, 128, 'player');
+        this.enemyCard = this.createStatusCard(802, 92, 430, 128, 'enemy');
 
-        this.logText.setText(`${attacker.name} causou ${damage} de dano!`);
+        this.actionPanel = this.add.rectangle(44, 566, 1192, 118, UI.panelFill, 0.92)
+            .setOrigin(0)
+            .setStrokeStyle(3, UI.panelStroke, 0.9)
+            .setDepth(30);
+
+        this.logTitle = this.add.text(72, 586, '', {
+            fontFamily: 'Georgia, serif',
+            fontSize: '25px',
+            color: UI.text,
+            stroke: '#000000',
+            strokeThickness: 4
+        }).setDepth(31);
+
+        this.logText = this.add.text(72, 624, '', {
+            fontFamily: 'Trebuchet MS, Arial, sans-serif',
+            fontSize: '19px',
+            color: UI.mutedText,
+            wordWrap: { width: 760 }
+        }).setDepth(31);
+
+        this.commandText = this.add.text(875, 596, '[ESPAÇO] Atacar\n[C] Curar', {
+            fontFamily: 'Trebuchet MS, Arial, sans-serif',
+            fontSize: '21px',
+            color: '#ffffff',
+            lineSpacing: 10,
+            stroke: '#000000',
+            strokeThickness: 3
+        }).setDepth(31);
+
         this.updateUI();
-        this.cameras.main.shake(200, 0.01);
-
-        this.time.delayedCall(1500, () => this.checkBattleEnd());
     }
 
-    // Retorna a string formatada para a UI
-    getPlayerStatus() {
-        return `${this.playerStats.name}\nHP: ${this.playerStats.hp}/${this.playerStats.maxHp}\nCTB: ${this.playerStats.actionValue}/100`;
+    createStatusCard(x, y, width, height, type) {
+        const accent = type === 'player' ? UI.playerAccent : UI.enemyAccent;
+        const card = {
+            x,
+            y,
+            width,
+            height,
+            accent,
+            bg: this.add.rectangle(x, y, width, height, UI.panelFill, 0.90).setOrigin(0).setStrokeStyle(3, accent, 0.95).setDepth(30),
+            name: this.add.text(x + 22, y + 16, '', {
+                fontFamily: 'Georgia, serif',
+                fontSize: '25px',
+                color: UI.text,
+                stroke: '#000000',
+                strokeThickness: 4
+            }).setDepth(31),
+            hpText: this.add.text(x + 22, y + 55, '', {
+                fontFamily: 'Trebuchet MS, Arial, sans-serif',
+                fontSize: '18px',
+                color: '#ffffff'
+            }).setDepth(31),
+            turnText: this.add.text(x + 22, y + 91, '', {
+                fontFamily: 'Trebuchet MS, Arial, sans-serif',
+                fontSize: '15px',
+                color: UI.mutedText
+            }).setDepth(31),
+            hpBarBg: this.add.rectangle(x + 122, y + 64, width - 152, 18, 0x050608, 0.95).setOrigin(0, 0.5).setDepth(31),
+            hpBar: this.add.rectangle(x + 122, y + 64, width - 152, 18, accent, 1).setOrigin(0, 0.5).setDepth(32),
+            turnBarBg: this.add.rectangle(x + 122, y + 100, width - 152, 10, 0x050608, 0.95).setOrigin(0, 0.5).setDepth(31),
+            turnBar: this.add.rectangle(x + 122, y + 100, width - 152, 10, 0xf0d36b, 1).setOrigin(0, 0.5).setDepth(32)
+        };
+
+        card.hpBarBg.setStrokeStyle(1, 0xffffff, 0.25);
+        card.turnBarBg.setStrokeStyle(1, 0xffffff, 0.18);
+        return card;
     }
 
-    getEnemyStatus() {
-        return `${this.enemyStats.name}\nHP: ${this.enemyStats.hp}/${this.enemyStats.maxHp}\nCTB: ${this.enemyStats.actionValue}/100`;
+    logMessage(title, body = '') {
+        this.logTitle.setText(title);
+        this.logText.setText(body);
+    }
+
+    updateCard(card, stats) {
+        const hpPercent = Phaser.Math.Clamp(stats.hp / stats.maxHp, 0, 1);
+        const turnPercent = Phaser.Math.Clamp(stats.actionValue / 100, 0, 1);
+        const barWidth = card.width - 152;
+
+        card.name.setText(stats.name);
+        card.hpText.setText(`HP ${stats.hp}/${stats.maxHp}`);
+        card.turnText.setText(`Turno ${Math.floor(stats.actionValue)}/100`);
+        card.hpBar.width = Math.max(1, barWidth * hpPercent);
+        card.turnBar.width = Math.max(1, barWidth * turnPercent);
+
+        if (hpPercent < 0.3) {
+            card.hpBar.setFillStyle(0xd94343);
+        } else if (hpPercent < 0.6) {
+            card.hpBar.setFillStyle(0xf0c04d);
+        } else {
+            card.hpBar.setFillStyle(card.accent);
+        }
     }
 
     updateUI() {
-        this.playerText.setText(this.getPlayerStatus());
-        this.enemyText.setText(this.getEnemyStatus());
+        this.updateCard(this.playerCard, this.playerStats);
+        this.updateCard(this.enemyCard, this.enemyStats);
     }
 
-    // --- MOTOR DO CTB (Conditional Turn-Based) ---
     calculateNextTurn() {
         this.isProcessingTurn = true;
 
-        // Avança o Action Value baseado na velocidade até alguém chegar a 100
         while (this.playerStats.actionValue < 100 && this.enemyStats.actionValue < 100) {
             this.playerStats.actionValue += this.playerStats.speed;
             this.enemyStats.actionValue += this.enemyStats.speed;
@@ -105,7 +257,6 @@ export default class BattleScene extends Phaser.Scene {
 
         this.updateUI();
 
-        // Verifica de quem é o turno (quem passou de 100 primeiro)
         if (this.playerStats.actionValue >= 100 && this.playerStats.actionValue >= this.enemyStats.actionValue) {
             this.startPlayerTurn();
         } else if (this.enemyStats.actionValue >= 100) {
@@ -113,21 +264,18 @@ export default class BattleScene extends Phaser.Scene {
         }
     }
 
-    // --- TURNO DO JOGADOR ---
-   startPlayerTurn() {
-        this.logText.setText('Seu turno! [ESPAÇO] Atacar  |  [C] Curar');
-        
-        this.playerStats.actionValue -= 100; 
-        
+    startPlayerTurn() {
+        this.logMessage('Seu turno!', 'Escolha uma ação: ataque com precisão ou recupere parte do HP.');
+
+        this.playerStats.actionValue -= 100;
+        this.updateUI();
+
         const handleTurnInput = (event) => {
             if (event.code === 'Space') {
-                this.input.keyboard.off('keydown', handleTurnInput); 
-                
-                // INICIA O MINIGAME EM VEZ DO ATAQUE DIRETO
+                this.input.keyboard.off('keydown', handleTurnInput);
                 this.startAttackMiniGame();
-            } 
-            else if (event.code === 'KeyC') {
-                this.input.keyboard.off('keydown', handleTurnInput); 
+            } else if (event.code === 'KeyC') {
+                this.input.keyboard.off('keydown', handleTurnInput);
                 this.executeHeal(this.playerStats);
             }
         };
@@ -135,184 +283,137 @@ export default class BattleScene extends Phaser.Scene {
         this.input.keyboard.on('keydown', handleTurnInput);
     }
 
-    // --- MINIGAME DE ATAQUE (Estilo Undertale) ---
     startAttackMiniGame() {
-        this.logText.setText('Aperte [ESPAÇO] no centro para Crítico!');
+        this.logMessage('Ataque de precisão', 'Aperte [ESPAÇO] quando o marcador cruzar o centro dourado para causar crítico.');
 
-        // Variáveis de tamanho e posição da barra
-        const barX = 400; // Centro da tela (assumindo 800 de largura)
-        const barY = 430; // Fica logo acima do texto de log
-        const barWidth = 400;
-        const barHeight = 30;
+        const barX = 640;
+        const barY = 525;
+        const barWidth = 540;
+        const barHeight = 28;
 
-        // 1. Fundo da barra (Preto com borda)
-        this.miniGameBg = this.add.rectangle(barX, barY, barWidth, barHeight, 0x000000).setOrigin(0.5);
-        this.miniGameBg.setStrokeStyle(4, 0xffffff);
+        this.miniGameBg = this.add.rectangle(barX, barY, barWidth, barHeight, 0x07090e, 0.96).setOrigin(0.5).setDepth(40);
+        this.miniGameBg.setStrokeStyle(3, UI.panelStroke, 1);
+        this.miniGameCenter = this.add.rectangle(barX, barY, 52, barHeight, 0xf0d36b, 1).setOrigin(0.5).setDepth(41);
+        this.miniGameGood = this.add.rectangle(barX, barY, 180, barHeight, 0x69d27d, 0.28).setOrigin(0.5).setDepth(40);
+        this.miniGameCursor = this.add.rectangle(barX - barWidth / 2 + 10, barY, 10, barHeight + 24, 0xffffff).setOrigin(0.5).setDepth(42);
 
-        // 2. Área central (Crítico - Verde)
-        this.miniGameCenter = this.add.rectangle(barX, barY, 40, barHeight, 0x00ff00).setOrigin(0.5);
-
-        // 3. Cursor (A barrinha que se move - Branca)
-        this.miniGameCursor = this.add.rectangle(barX - barWidth/2 + 10, barY, 10, barHeight + 20, 0xffffff).setOrigin(0.5);
-
-        // 4. Animação de ir e voltar (Tween)
         this.miniGameTween = this.tweens.add({
             targets: this.miniGameCursor,
-            x: barX + barWidth/2 - 10, // Move até a ponta direita
-            duration: 700,             // Velocidade (menor = mais rápido/difícil)
-            yoyo: true,                // Vai e volta
-            repeat: -1                 // Repete infinitamente
+            x: barX + barWidth / 2 - 10,
+            duration: 700,
+            yoyo: true,
+            repeat: -1
         });
 
-        // 5. Escuta o botão de parar (com um pequeno delay para não pegar o espaço do turno)
         this.time.delayedCall(100, () => {
             this.input.keyboard.once('keydown-SPACE', () => {
-                this.stopAttackMiniGame(barX, barWidth);
+                this.stopAttackMiniGame(barX);
             });
         });
     }
 
-    stopAttackMiniGame(barCenterX, barWidth) {
-        // Congela o cursor
+    stopAttackMiniGame(barCenterX) {
         this.miniGameTween.stop();
 
-        // Calcula a distância do cursor até o centro perfeito da barra
         const cursorX = this.miniGameCursor.x;
         const distance = Math.abs(cursorX - barCenterX);
-
-        // Define o multiplicador de dano (A distância máxima é ~200 pixels)
         let multiplier = 0;
-        
-        if (distance <= 20) {
-            multiplier = 1.5; // CRÍTICO: Parou bem no meio
+
+        if (distance <= 26) {
+            multiplier = 1.5;
         } else if (distance <= 120) {
-            multiplier = 1.0; // NORMAL: Parou na zona média
-        } else if (distance <= 180) {
-            multiplier = 0.5; // FRACO: Quase errou
-        } else {
-            multiplier = 0;   // ERROU: Parou na bordinha
+            multiplier = 1.0;
+        } else if (distance <= 220) {
+            multiplier = 0.5;
         }
 
-        // Apaga os visuais do minigame
         this.miniGameBg.destroy();
         this.miniGameCenter.destroy();
+        this.miniGameGood.destroy();
         this.miniGameCursor.destroy();
 
-        // Manda executar o ataque passando o multiplicador como bônus
         this.executeAttack(this.playerStats, this.enemyStats, multiplier);
     }
 
-    // --- TURNO DO INIMIGO ---
     startEnemyTurn() {
-        this.logText.setText(`Turno do ${this.enemyStats.name}...`);
-        
-        this.enemyStats.actionValue -= 100;
+        this.logMessage(`Turno do ${this.enemyStats.name}...`, 'O inimigo se prepara para atacar.');
 
-        // IA super simples: ataca após 1 segundo
+        this.enemyStats.actionValue -= 100;
+        this.updateUI();
+
         this.time.delayedCall(1000, () => {
             this.executeAttack(this.enemyStats, this.playerStats);
         });
     }
 
-    // --- LÓGICA DE DANO ---
     executeAttack(attacker, defender, multiplier = 1) {
-        
-        // Se o jogador errou o minigame completamente
         if (multiplier === 0) {
-            this.logText.setText(`${attacker.name} ERROU o ataque!`);
+            this.logMessage(`${attacker.name} errou!`, 'O golpe passou longe e não causou dano.');
             this.time.delayedCall(1500, () => this.checkBattleEnd());
             return;
         }
 
-        // Dano agora é fixo baseado no multiplicador
-        let damage = Math.round(attacker.attack * multiplier);
+        const damage = Math.round(attacker.attack * multiplier);
+        let feedbackText = '';
+        if (multiplier > 1) feedbackText = 'ACERTO CRÍTICO! ';
+        else if (multiplier < 1) feedbackText = 'Acerto de raspão... ';
 
-        // Textos interativos dependendo do acerto
-        let feedbackText = "";
-        if (multiplier > 1) feedbackText = "ACERTO CRÍTICO! ";
-        else if (multiplier < 1) feedbackText = "Acerto de raspão... ";
-
-        // Aplica o dano usando a classe Enemy se possível
         if (defender.takeDamage) {
             defender.takeDamage(damage);
         } else {
             defender.hp = Math.max(0, defender.hp - damage);
+            this.playerSprite.setTint(0xff5454);
+            this.time.delayedCall(200, () => this.playerSprite.clearTint());
         }
 
-        this.logText.setText(`${feedbackText}${attacker.name} causou ${damage} de dano!`);
+        this.logMessage(`${feedbackText}${attacker.name} atacou!`, `${damage} de dano causado.`);
         this.updateUI();
-
         this.cameras.main.shake(200, 0.01);
 
-        this.time.delayedCall(1500, () => {
-            this.checkBattleEnd();
-        });
+        this.time.delayedCall(1500, () => this.checkBattleEnd());
     }
 
     executeHeal(character) {
-        // Define o valor da cura (ex: 25 de HP base + um valor aleatório entre -5 e 5)
-        let healAmount = 25 + Phaser.Math.Between(-5, 5); 
-        
+        let healAmount = 25 + Phaser.Math.Between(-5, 5);
         character.hp += healAmount;
 
-        // Trava o HP para não ultrapassar a vida máxima
         if (character.hp > character.maxHp) {
-            // Calcula o quanto curou de verdade (caso a vida estivesse quase cheia)
-            healAmount -= (character.hp - character.maxHp); 
+            healAmount -= character.hp - character.maxHp;
             character.hp = character.maxHp;
         }
 
-        this.logText.setText(`${character.name} recuperou ${healAmount} de HP!`);
+        this.logMessage(`${character.name} se curou!`, `${healAmount} de HP recuperado.`);
         this.updateUI();
-
-        // Efeito visual: Flash verde na tela para indicar a cura
         this.cameras.main.flash(300, 50, 255, 50);
-
-        // Deixa a cor do boneco verde rapidamente, depois volta ao normal
-        this.playerSprite.setTint(0x00ff00);
-        this.time.delayedCall(300, () => {
-            this.playerSprite.clearTint();
-        });
-
-        // Passa o turno adiante
-        this.time.delayedCall(1500, () => {
-            this.checkBattleEnd();
-        });
+        this.playerSprite.setTint(0x66ff88);
+        this.time.delayedCall(300, () => this.playerSprite.clearTint());
+        this.time.delayedCall(1500, () => this.checkBattleEnd());
     }
 
     checkBattleEnd() {
         if (this.enemyStats.hp <= 0) {
-            this.logText.setText('Você venceu a batalha!');
+            this.logMessage('Você venceu a batalha!', 'A área está segura por enquanto.');
             this.time.delayedCall(2000, () => this.endBattle(true));
-        } 
-        else if (this.playerStats.hp <= 0) {
-            this.logText.setText('Você foi derrotado...');
+        } else if (this.playerStats.hp <= 0) {
+            this.logMessage('Você foi derrotado...', 'A expedição chegou ao fim.');
             this.time.delayedCall(2000, () => this.endBattle(false));
-        } 
-        else {
-            // Se ninguém morreu, recalcula o próximo turno
+        } else {
             this.calculateNextTurn();
         }
     }
 
     endBattle(playerWon) {
-        // Descobre em qual fase o jogador estava lutando
-        const currentSceneKey = this.biome === 'ossos' ? 'Fase2Scene' : 'Fase1Scene';
+        const currentSceneKey = this.originSceneKey || this.battlefieldConfig.sceneKey;
 
         if (playerWon) {
-            this.scene.stop(); // Desliga a tela de Batalha
-            this.scene.resume(currentSceneKey); // Acorda a fase
-            
+            this.scene.stop();
+            this.scene.resume(currentSceneKey);
+
             const exploreScene = this.scene.get(currentSceneKey);
             exploreScene.events.emit('resumeExploration', { newHp: this.playerStats.hp });
         } else {
-            // EM CASO DE DERROTA:
-            
-            // 1. Desliga completamente a fase do mapa (para ela recomeçar limpa depois)
             this.scene.stop(currentSceneKey);
-            
-            // 2. Inicia o Game Over mandando { points: 0 } de forma explícita
-            this.scene.start('GameOverScene', { points: 0 }); 
+            this.scene.start('GameOverScene', { points: 0 });
         }
     }
 }
