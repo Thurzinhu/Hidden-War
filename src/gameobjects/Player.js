@@ -5,7 +5,7 @@ export class Player extends Physics.Arcade.Sprite {
     walkSpeed = 180;
     type = "warrior";
 
-    hp = 100;
+    hp = 10;
     maxHp = 100;
 
     distanceAccumulator = 0;
@@ -86,8 +86,8 @@ export class Player extends Physics.Arcade.Sprite {
 
     generateNextEncounterTarget() {
         // Quantidade de pixels mínima e máxima para rodar pelo mapa até a batalha
-        const minDistance = 200; 
-        const maxDistance = 600; 
+        const minDistance = 1000; 
+        const maxDistance = 3000; 
         return Phaser.Math.Between(minDistance, maxDistance);
     }
 

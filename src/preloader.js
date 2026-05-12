@@ -90,6 +90,9 @@ export class Preloader extends Phaser.Scene {
             frameWidth: 320,
             frameHeight: 320
         });
+
+        this.load.setPath("assets");
+        this.load.json('enemies_data', 'data/enemies.json');
     }
 
     loadFonts() {

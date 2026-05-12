@@ -7,6 +7,8 @@ export class GameOverScene extends Scene {
     }
 
     init(data) {
+        if (!data) data = {}; 
+        
         this.cameras.main.fadeIn(1000, 0, 0, 0);
         this.end_points = data.points || 0;
     }

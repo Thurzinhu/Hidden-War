@@ -82,6 +82,28 @@ export class Fase2Scene extends Scene {
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
+        this.events.on('startBattle', (playerData) => {
+            console.log("Iniciando batalha no Vale dos Ossos...");
+            this.cameras.main.flash(300, 255, 255, 255); 
+            
+            this.time.delayedCall(300, () => {
+                this.scene.pause(); 
+                
+                // IMPORTANTE: Aqui passamos biome: 'caverna' (ou 'ossos')
+                this.scene.launch('BattleScene', { 
+                    biome: 'ossos', 
+                    playerHp: playerData.hp,
+                    playerMaxHp: playerData.maxHp
+                }); 
+            });
+        });
+
+        this.events.on('resumeExploration', (batalhaData) => {
+            this.player.hp = batalhaData.newHp;
+            this.player.resumeExploration();
+            console.log(`De volta ao Vale. HP: ${this.player.hp}`);
+        });
+
         this.add.rectangle(0, 0, map.widthInPixels, map.heightInPixels, 0xbababa, 0.2)
             .setOrigin(0, 0)
             .setDepth(100);

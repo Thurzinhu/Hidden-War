@@ -1,0 +1,22 @@
+{
+    "floresta": [
+        {
+            "id": "pawn_red",
+            "name": "Peão Vermelho",
+            "maxHp": 50,
+            "attack": 8,
+            "speed": 8,
+            "spriteKey": "pawn_enemy_red"
+        }
+    ],
+    "ossos": [
+        {
+            "id": "lancer_blue",
+            "name": "Lanceiro Negro",
+            "maxHp": 60,
+            "attack": 10,
+            "speed": 10,
+            "spriteKey": "lancer_enemy_blue"
+        }
+    ]
+}
