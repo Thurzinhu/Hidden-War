@@ -7,6 +7,7 @@ import { Fase1Scene } from "./scenes/Fase1Scene";
 import { Fase2Scene } from "./scenes/Fase2Scene";
 import { MenuScene } from "./scenes/MenuScene";
 import { SplashScene } from "./scenes/SplashScene";
+import { StoryIntroScene } from "./scenes/StoryIntroScene";
 //Cena de batalha
 import BattleScene from './scenes/BattleScene.js';
 
@@ -30,6 +31,7 @@ const config = {
     scene: [
         Preloader,
         SplashScene,
+        StoryIntroScene,
         // Coloca as fases aqui
         Fase1Scene,
         Fase2Scene,

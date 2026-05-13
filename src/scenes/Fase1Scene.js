@@ -28,12 +28,12 @@ export class Fase1Scene extends Scene {
                 layerObj.setCollisionByExclusion([-1]);
                 this.physics.add.collider(this.player, layerObj);
             }
-            const debugGraphics = this.add.graphics().setAlpha(0.75).setDepth(999);
-            layerObj.renderDebug(debugGraphics, {
-                tileColor: null,
-                collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255),
-                faceColor: new Phaser.Display.Color(40, 39, 37, 255)
-            });
+            // const debugGraphics = this.add.graphics().setAlpha(0.75).setDepth(999);
+            // layerObj.renderDebug(debugGraphics, {
+            //     tileColor: null,
+            //     collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255),
+            //     faceColor: new Phaser.Display.Color(40, 39, 37, 255)
+            // });
         }  
 
         const camera = this.cameras.main;
@@ -62,7 +62,7 @@ export class Fase1Scene extends Scene {
             this.scene.start("Fase2Scene");
         });
 
-        this.physics.world.createDebugGraphic();
+        // this.physics.world.createDebugGraphic();
 
         this.events.on('startBattle', (playerData) => {
             
