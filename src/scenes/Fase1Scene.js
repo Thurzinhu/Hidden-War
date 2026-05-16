@@ -75,7 +75,10 @@ export class Fase1Scene extends Scene {
                 
                 // Sobrepõe a cena de batalha passando o HP atual e máximo
                 this.scene.launch('BattleScene', { 
+                    biome: 'floresta',
                     mapLevel: 1,
+                    originSceneKey: 'Fase1Scene',
+                    battleOrigin: { x: this.player.x, y: this.player.y },
                     playerHp: playerData.hp,
                     playerMaxHp: playerData.maxHp
                 }); 
